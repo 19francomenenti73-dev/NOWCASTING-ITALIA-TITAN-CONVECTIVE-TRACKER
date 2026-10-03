@@ -20,18 +20,19 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Esecuzione Algoritmo TITAN / Lagrangiano
+      - name: Install dependencies
         run: |
-          python -c "
-          from datetime import datetime
-          print('Elaborazione flussi radar, centroidi e vettori completata alle:', datetime.utcnow())
-          "
+          pip install numpy matplotlib
+
+      - name: Esecuzione Algoritmo TITAN e Generazione Immagini Isometriche
+        run: |
+          python generate_grid.py
 
       - name: Commit e Sincronizzazione automatica
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add cells.json
-          git commit -m "Aggiornamento automatico celle radar [skip ci]" || exit 0
+          git add images/cell_sample_01.png cells.json
+          git commit -m "Aggiornamento automatico griglia radar 3D e celle [skip ci]" || exit 0
           git push
           
