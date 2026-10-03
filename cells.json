@@ -1,0 +1,29 @@
+[
+  {
+    "id": "cell_01",
+    "lat": 45.4642,
+    "lon": 9.1900,
+    "max_dbz": 68,
+    "vil": "48 kg/m²",
+    "eta": "35 min",
+    "velocity": "55 km/h",
+    "severity": "Molto Alto",
+    "hail_risk": "Elevato",
+    "image_path": "images/cell_sample_01.png",
+    "history_path": [
+      [45.2000, 8.9000],
+      [45.3300, 9.0500],
+      [45.4642, 9.1900]
+    ],
+    "forecast_path": [
+      [45.4642, 9.1900],
+      [45.6000, 9.3500],
+      [45.7500, 9.5000]
+    ],
+    "cep_ring": {
+      "lat": 45.7500,
+      "lon": 9.5000,
+      "radius_m": 12000
+    }
+  }
+]
