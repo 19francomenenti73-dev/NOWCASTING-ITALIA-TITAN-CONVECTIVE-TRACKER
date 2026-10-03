@@ -31,4 +31,5 @@ jobs:
         with:
           commit_message: "Aggiornamento automatico griglia 3D e celle [skip ci]"
           file_pattern: "images/cell_sample_01.png cells.json"
+          token: ${{ secrets.GITHUB_TOKEN }}
           
