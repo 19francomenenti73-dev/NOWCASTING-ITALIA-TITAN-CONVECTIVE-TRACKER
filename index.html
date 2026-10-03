@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nowcasting Italia — TITAN LAGRANGIAN CONVECTIVE TRACKER</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        html, body, #map {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        /* Intestazione del Modulo sulla Mappa */
+        .tracker-header {
+            position: absolute;
+            top: 10px;
+            left: 60px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #222;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            border-left: 4px solid #28a745;
+        }
+        /* Centroide Verde Pulsante */
+        .pulsing-centroid {
+            background: rgba(40, 167, 69, 0.8);
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(40, 167, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+        }
+        /* Finestra Modale / Popup */
+        .leaflet-popup-content-wrapper {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .radar-modal-content {
+            text-align: center;
+            max-width: 260px;
+        }
+        .radar-modal-content img {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            margin-bottom: 8px;
+            background: #fff;
+            display: block;
+        }
+        .radar-data {
+            font-size: 12px;
+            text-align: left;
+            line-height: 1.4;
+            color: #333;
+        }
+        .radar-data span {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="tracker-header">NOWCASTING ITALIA — TITAN LAGRANGIAN CONVECTIVE TRACKER</div>
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Mappa centrata su Italia, Mediterraneo e Alpi (Tema chiaro standard OpenStreetMap)
+        const map = L.map('map').setView([45.0, 11.5], 6);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        async function loadStormData() {
+            try {
+                const response = await fetch('cells.json?t=' + new Date().getTime());
+                const cells = await response.json();
+
+                cells.forEach(cell => {
+                    // Soglia di intercettazione rigorosa >= 32 dBZ
+                    if (cell.max_dbz >= 32) {
+                        
+                        // 1. Vettore Reale Storico (Blu - aggiornato ogni 10 min)
+                        if (cell.history_path && cell.history_path.length > 0) {
+                            L.polyline(cell.history_path, { color: '#007bff', weight: 4, opacity: 0.8 }).addTo(map);
+                        }
+
+                        // 2. Vettore Previsionale (Rosso Tratteggiato - 3 ore)
+                        if (cell.forecast_path && cell.forecast_path.length > 0) {
+                            L.polyline(cell.forecast_path, { color: '#dc3545', weight: 3, dashArray: '5, 10', opacity: 0.9 }).addTo(map);
+                        }
+
+                        // 3. Anello CEP (Cerchio rosso di allerta previsionale su centri abitati)
+                        if (cell.cep_ring) {
+                            L.circle([cell.cep_ring.lat, cell.cep_ring.lon], {
+                                color: '#dc3545', fillColor: '#dc3545', fillOpacity: 0.15,
+                                radius: cell.cep_ring.radius_m, weight: 2
+                            }).addTo(map);
+                        }
+
+                        // 4. Icona Centroide Verde Pulsante
+                        const pulsingIcon = L.divIcon({
+                            className: 'pulsing-centroid',
+                            iconSize: [24, 24],
+                            iconAnchor: [12, 12]
+                        });
+                        const marker = L.marker([cell.lat, cell.lon], { icon: pulsingIcon }).addTo(map);
+
+                        // 5. Finestra Modale al Click (Immagine PNG statica 3D + Parametri)
+                        const popupContent = `
+                            <div class="radar-modal-content">
+                                <img src="${cell.image_path}" alt="Estrusione Radar 3D">
+                                <div class="radar-data">
+                                    <div>Riflettività Max: <span>${cell.max_dbz} dBZ</span></div>
+                                    <div>Velocità Cella: <span>${cell.velocity}</span></div>
+                                    <div>Severità: <span>${cell.severity}</span></div>
+                                    <div>Rischio Grandine: <span>${cell.hail_risk}</span></div>
+                                    <div>VIL: <span>${cell.vil}</span> | ETA: <span>${cell.eta}</span></div>
+                                </div>
+                            </div>
+                        `;
+                        marker.bindPopup(popupContent);
+                    }
+                });
+            } catch (error) {
+                console.error("Errore nel caricamento dei dati radar:", error);
+            }
+        }
+
+        loadStormData();
+        // Sincronizzazione automatica ogni 10 minuti
+        setInterval(loadStormData, 600000);
+    </script>
+</body>
+</html>
