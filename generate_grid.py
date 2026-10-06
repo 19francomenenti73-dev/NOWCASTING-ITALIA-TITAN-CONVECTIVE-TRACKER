@@ -1,55 +1,69 @@
 import os
 import json
+import numpy as np
 import matplotlib
 matplotlib.use('Agg')
-import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
-os.makedirs("images", exist_ok=True)
+os.makedirs("immagini", exist_ok=True)
 
-def generate_isometric_cell_image(max_dbz, output_path):
-    fig, ax = plt.subplots(figsize=(6, 5), subplot_kw={'projection': '3d'})
+def genera_isometric_cella_immagine(max_dbz, percorso_di_output):
+    fig = plt.figure(figsize=(6, 6))
+    ax = fig.add_subplot(111, projection='3d')
+
+    dimensione_griglia = 10
+    X = np.linspace(0, dimensione_griglia, 11)
+    Y = np.linspace(0, dimensione_griglia, 11)
+    X, Y = np.meshgrid(X, Y)
+
+    # Calcolo della superficie 3D della cella
+    Z = np.exp(-((X - 5)**2 + (Y - 5)**2) / 10.0) * (max_dbz / 1.5)
+
+    # Nota: rimosso 'rasterized=True' per evitare l'errore di incompatibilità
+    ax.plot_surface(X, Y, Z, cmap='gist_nipy_spectral', rstride=1, cstride=1, linewidth=0, antialiased=False)
     
-    grid_size = 18
-    x = np.arange(0, grid_size, 1)
-    y = np.arange(0, grid_size, 1)
-    X, Y = np.meshgrid(x, y)
-    
-    Z = np.exp(-((X - grid_size/2)**2 + (Y - grid_size/2)**2) / 12.0) * (max_dbz / 4.5)
-    
-    ax.plot_surface(X, Y, Z, cmap='nipy_spectral', edgecolor='none', alpha=0.9, rstride=1, cstrides=1)
-    ax.set_axis_off()
+    ax.axis('off')
     ax.view_init(elev=35, azim=45)
-    
-    plt.savefig(output_path, bbox_inches='tight', dpi=150, transparent=True)
+
+    plt.savefig(percorso_di_output, bbox_inches='tight', dpi=150, transparent=True)
     plt.close()
 
-def generate_sample_json():
-    json_path = "cells.json"
-    sample_data = [
+def genera_sample_json():
+    percorso_json = "cells.json"
+    dati_di_esempio = [
         {
-            "lat": 41.9028,
-            "lon": 12.4964,
+            "id": "cella_01",
+            "lat": 45.4642,
+            "lon": 9.1900,
             "max_dbz": 68,
-            "velocity": "45 km/h NE",
-            "severity": "Alta (Severa)",
-            "hail_risk": "Elevato (> 3cm)",
             "vil": "48 kg/m²",
-            "eta": "15 min",
-            "image_path": "images/cell_sample_01.png",
-            "history_path": [[41.80, 12.40], [41.85, 12.45], [41.9028, 12.4964]],
-            "forecast_path": [[41.9028, 12.4964], [41.95, 12.55], [42.00, 12.60]],
+            "eta": "35 minuti",
+            "velocity": "55 km/h",
+            "severity": "Alto",
+            "hail_risk": "Elevato",
+            "image_path": "immagini/cell_sample_01.png",
+            "history_path": [
+                [45.2000, 8.9000],
+                [45.3300, 9.0500],
+                [45.4642, 9.1900]
+            ],
+            "forecast_path": [
+                [45.4642, 9.1900],
+                [45.6000, 9.3500],
+                [45.7500, 9.500]
+            ],
             "cep_ring": {
-                "lat": 42.00,
-                "lon": 12.60,
-                "radius_m": 5000
+                "lat": 45.7500,
+                "lon": 9.500,
+                "radius_m": 12000
             }
         }
     ]
-    with open(json_path, 'w', encoding='utf-8') as f:
-        json.dump(sample_data, f, indent=4)
+    with open(percorso_json, 'w', encoding='utf-8') as f:
+        json.dump(dati_di_esempio, f, ensure_ascii=False, indent=4)
 
-if __name__ == "__main__":
-    generate_isometric_cell_image(68, "images/cell_sample_01.png")
-    generate_sample_json()
+if __name__ == '__main__':
+    genera_isometric_cella_immagine(68, "immagini/cell_sample_01.png")
+    genera_sample_json()
     
