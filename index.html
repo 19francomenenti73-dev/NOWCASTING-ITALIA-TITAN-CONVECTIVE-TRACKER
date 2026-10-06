@@ -78,47 +78,36 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const map = L.map('map').setView([42.5, 12.5], 6);
+        const map = L.map('map').setView([41.5, 12.5], 6);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 18,
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Caricamento dei layer meteorologici (IR Satellitare + Radar Precipitazioni)
-        async function loadWeatherLayers() {
+        // Caricamento del livello Radar in tempo reale
+        async function loadRadarLayer() {
             try {
                 const response = await fetch('https://api.rainviewer.com/public/weather-maps.json');
                 const data = await response.json();
                 const host = data.host || 'https://tilecache.rainviewer.com';
 
-                // 1. Livello Infrarosso (IR) in semi-trasparenza
-                if (data && data.satellite && data.satellite.infrared && data.satellite.infrared.past && data.satellite.infrared.past.length > 0) {
-                    const latestIR = data.satellite.infrared.past[data.satellite.infrared.past.length - 1];
-                    L.tileLayer(host + latestIR.path + '/256/{z}/{x}/{y}/0/0_0.png', {
-                        tileSize: 256,
-                        opacity: 0.35,
-                        attribution: '&copy; RainViewer IR'
-                    }).addTo(map);
-                }
-
-                // 2. Livello Radar Precipitazioni
                 if (data && data.radar && data.radar.past && data.radar.past.length > 0) {
                     const latestRadar = data.radar.past[data.radar.past.length - 1];
                     L.tileLayer(host + latestRadar.path + '/256/{z}/{x}/{y}/2/1_1.png', {
                         tileSize: 256,
-                        opacity: 0.70,
+                        opacity: 0.75,
                         attribution: '&copy; RainViewer Radar'
                     }).addTo(map);
                 }
             } catch (e) {
-                console.error("Errore nel caricamento dei layer meteo:", e);
+                console.error("Errore nel caricamento del layer radar:", e);
             }
         }
 
-        loadWeatherLayers();
+        loadRadarLayer();
 
-        // Caricamento delle celle tracciate dal file JSON generato dal backend
+        // Caricamento dinamico delle celle dal backend JSON
         async function loadStormData() {
             try {
                 const response = await fetch('cells.json?t=' + new Date().getTime());
@@ -126,12 +115,15 @@
 
                 cells.forEach(cell => {
                     if (cell.max_dbz >= 32) {
+                        // 1. Vettore Storico (Blu)
                         if (cell.history_path && cell.history_path.length > 0) {
                             L.polyline(cell.history_path, { color: '#007bff', weight: 4, opacity: 0.8 }).addTo(map);
                         }
+                        // 2. Vettore Previsionale (Rosso Tratteggiato)
                         if (cell.forecast_path && cell.forecast_path.length > 0) {
                             L.polyline(cell.forecast_path, { color: '#dc3545', weight: 3, dashArray: '5, 10', opacity: 0.9 }).addTo(map);
                         }
+                        // 3. Anello CEP
                         if (cell.cep_ring) {
                             L.circle([cell.cep_ring.lat, cell.cep_ring.lon], {
                                 color: '#dc3545', fillColor: '#dc3545', fillOpacity: 0.15,
@@ -139,6 +131,7 @@
                             }).addTo(map);
                         }
 
+                        // 4. Centroide Pulsante
                         const pulsingIcon = L.divIcon({
                             className: 'pulsing-centroid',
                             iconSize: [24, 24],
@@ -146,12 +139,14 @@
                         });
                         const marker = L.marker([cell.lat, cell.lon], { icon: pulsingIcon }).addTo(map);
 
+                        // 5. Popup con Immagine Volumetrica 3D
                         const popupContent = `
                             <div class="radar-modal-content">
                                 <img src="${cell.image_path}" alt="Estrusione Radar 3D">
                                 <div class="radar-data">
+                                    <div>ID Cella: <span>${cell.id}</span></div>
                                     <div>Riflettività Max: <span>${cell.max_dbz} dBZ</span></div>
-                                    <div>Velocità Cella: <span>${cell.velocity}</span></div>
+                                    <div>Velocità: <span>${cell.velocity}</span></div>
                                     <div>Severità: <span>${cell.severity}</span></div>
                                     <div>Rischio Grandine: <span>${cell.hail_risk}</span></div>
                                     <div>VIL: <span>${cell.vil}</span> | ETA: <span>${cell.eta}</span></div>
