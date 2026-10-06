@@ -93,13 +93,13 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // 3. Layer Satellitare Infrarosso 24/7 EUMETSAT RSS WMS (funziona perfettamente anche di giorno)
+        // 3. Layer Satellitare Infrarosso EUMETSAT RSS con versione 1.1.1 per massima compatibilità
         const eumetsatSatLayer = L.tileLayer.wms('https://view.eumetsat.int/geoserver/wms', {
-            layers: 'msg_rss:ir108', // Canale Infrarosso termico 10.8 µm (attivo 24/7)
+            layers: 'msg_rss:ir108',     // Canale Infrarosso termico 10.8 µm (attivo 24/7)
             format: 'image/png',
             transparent: true,
-            opacity: 0.5,            // Trasparenza dello strato satellitare
-            version: '1.3.0',
+            opacity: 0.5,                // Trasparenza dello strato nuvoloso
+            version: '1.1.1',            // <-- Fondamentale: risolve i problemi di compatibilità degli assi con GeoServer
             attribution: '&copy; EUMETSAT EUMETView RSS'
         }).addTo(map);
 
@@ -159,7 +159,7 @@
 
                         // Popup con Immagine Volumetrica 3D dedicata
                         const popupContent = `
-                            <div class="radar-modal-content">
+                            <div class="radar-modal-content">sv
                                 <img src="${cell.image_path}" alt="Estrusione Radar 3D">
                                 <div class="radar-data">
                                     <div>ID Cella: <span>${cell.id}</span></div>
