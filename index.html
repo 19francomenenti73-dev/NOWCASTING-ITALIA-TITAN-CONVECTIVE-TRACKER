@@ -24,25 +24,33 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Inizializzazione mappa centrata sull'area di interesse italiana
+        // Inizializzazione mappa centrata sull'Italia
         var map = L.map('map').setView([41.9, 12.5], 6);
 
-        // Mappa base OpenStreetMap (100% gratuita, aperta e senza API Key)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        // Mappa base OpenStreetMap
+        var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 18,
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Integrazione layer radar in semitrasparenza tramite API aperte RainViewer
+        // Layer Satellite IR Trasparente gratuito da EUMETSAT WMS (EUMETView)
+        var eumetsatIR = L.tileLayer.wms('https://view.eumetsat.int/geoserver/wms', {
+            layers: 'msg_fes:rgb_airmass',
+            format: 'image/png',
+            transparent: true,
+            attribution: '&copy; EUMETSAT',
+            opacity: 0.5
+        });
+
+        // Layer radar in semitrasparenza tramite API aperte RainViewer
+        var radarLayer = L.tileLayer('', { opacity: 0.6, attribution: 'RainViewer' });
+
         fetch('https://api.rainviewer.com/public/weather-maps.json')
             .then(response => response.json())
             .then(data => {
                 if (data.radar && data.radar.past && data.radar.past.length > 0) {
                     let latestPath = data.radar.past[data.radar.past.length - 1].path;
-                    let radarLayer = L.tileLayer(`https://tile.rainviewer.com${latestPath}/256/{z}/{x}/{y}/2/1_1.png`, {
-                        opacity: 0.6,
-                        attribution: 'RainViewer'
-                    });
+                    radarLayer.setUrl(`https://tile.rainviewer.com${latestPath}/256/{z}/{x}/{y}/2/1_1.png`);
                     radarLayer.addTo(map);
                     document.getElementById('status-radar').innerText = "Radar attivo e sincronizzato";
                 }
@@ -51,6 +59,14 @@
                 console.error("Errore radar:", err);
                 document.getElementById('status-radar').innerText = "Errore flusso radar";
             });
+
+        // Controllo Layer per attivare/disattivare OSM, Radar e Satellite IR EUMETSAT
+        var baseMaps = { "OpenStreetMap": osmLayer };
+        var overlayMaps = {
+            "Radar RainViewer": radarLayer,
+            "Satellite IR (EUMETSAT)": eumetsatIR
+        };
+        L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
 
         // Caricamento dati celle da cells.json generato dal backend
         fetch('cells.json')
@@ -70,7 +86,7 @@
                             <b>Velocità:</b> ${cell.velocita}<br>
                             <b>Severità:</b> ${cell.gravita}<br>
                             <b>Rischio Grandine:</b> ${cell.rischio_grandine}<br>
-                            <b>VCM:</b> ${cell.cattivo}<br>
+                            <b>VCM / VIL:</b> ${cell.cattivo}<br>
                             <i style="color:#cbd5e1;">${cell.eta}</i><br>
                             <img src="${cell.percorso_immagine}" class="cell-img" alt="3D Volumetrico">
                         </div>
