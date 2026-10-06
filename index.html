@@ -81,21 +81,56 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Mappa centrata su Italia, Mediterraneo e Alpi
-        const map = L.map('map').setView([45.0, 11.5], 6);
+        // Mappa centrata sull'Italia
+        const map = L.map('map').setView([42.5, 12.5], 6);
 
+        // Mappa di base OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 18,
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
+        // Caricamento dei layer meteorologici (Infrarosso IR e Radar) senza API Key
+        async function loadWeatherLayers() {
+            try {
+                const response = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+                const data = await response.json();
+                
+                // 1. Livello Satellitare Infrarosso (IR) in semi-trasparenza
+                if (data && data.satellite && data.satellite.infrared && data.satellite.infrared.past && data.satellite.infrared.past.length > 0) {
+                    const latestIR = data.satellite.infrared.past[data.satellite.infrared.past.length - 1];
+                    const irLayer = L.tileLayer(`https://tile.rainviewer.com${latestIR.path}/256/{z}/{x}/{y}/0/0_0.png`, {
+                        tileSize: 256,
+                        opacity: 0.45, // Regola la trasparenza dello strato IR
+                        attribution: '&copy; RainViewer IR'
+                    });
+                    irLayer.addTo(map);
+                }
+
+                // 2. Livello Radar Precipitazioni in tempo reale
+                if (data && data.radar && data.radar.past && data.radar.past.length > 0) {
+                    const latestRadar = data.radar.past[data.radar.past.length - 1];
+                    const radarLayer = L.tileLayer(`https://tile.rainviewer.com${latestRadar.path}/256/{z}/{x}/{y}/2/1_1.png`, {
+                        tileSize: 256,
+                        opacity: 0.65,
+                        attribution: '&copy; RainViewer Radar'
+                    });
+                    radarLayer.addTo(map);
+                }
+            } catch (e) {
+                console.error("Impossibile caricare i layer meteo:", e);
+            }
+        }
+
+        loadWeatherLayers();
+
+        // Caricamento delle celle tracciate dal file JSON
         async function loadStormData() {
             try {
                 const response = await fetch('cells.json?t=' + new Date().getTime());
                 const cells = await response.json();
 
                 cells.forEach(cell => {
-                    // Soglia di intercettazione rigorosa >= 32 dBZ
                     if (cell.max_dbz >= 32) {
                         
                         // 1. Vettore Reale Storico (Blu)
@@ -141,7 +176,7 @@
                     }
                 });
             } catch (error) {
-                console.error("Errore nel caricamento dei dati radar:", error);
+                console.error("Errore nel caricamento dei dati delle celle:", error);
             }
         }
 
