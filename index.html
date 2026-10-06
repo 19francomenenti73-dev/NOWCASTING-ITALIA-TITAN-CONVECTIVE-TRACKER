@@ -85,13 +85,24 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Caricamento del livello Radar in tempo reale
-        async function loadRadarLayer() {
+        // Caricamento dei layer meteorologici (IR Satellitare e Radar)
+        async function loadWeatherLayers() {
             try {
                 const response = await fetch('https://api.rainviewer.com/public/weather-maps.json');
                 const data = await response.json();
                 const host = data.host || 'https://tilecache.rainviewer.com';
 
+                // 1. Livello Satellitare Infrarosso (IR) in semi-trasparenza
+                if (data && data.satellite && data.satellite.infrared && data.satellite.infrared.past && data.satellite.infrared.past.length > 0) {
+                    const latestIR = data.satellite.infrared.past[data.satellite.infrared.past.length - 1];
+                    L.tileLayer(host + latestIR.path + '/256/{z}/{x}/{y}/0/0_0.png', {
+                        tileSize: 256,
+                        opacity: 0.40,
+                        attribution: '&copy; RainViewer IR'
+                    }).addTo(map);
+                }
+
+                // 2. Livello Radar Precipitazioni
                 if (data && data.radar && data.radar.past && data.radar.past.length > 0) {
                     const latestRadar = data.radar.past[data.radar.past.length - 1];
                     L.tileLayer(host + latestRadar.path + '/256/{z}/{x}/{y}/2/1_1.png', {
@@ -101,13 +112,13 @@
                     }).addTo(map);
                 }
             } catch (e) {
-                console.error("Errore nel caricamento del layer radar:", e);
+                console.error("Errore nel caricamento dei layer meteo:", e);
             }
         }
 
-        loadRadarLayer();
+        loadWeatherLayers();
 
-        // Caricamento dinamico delle celle dal backend JSON
+        // Caricamento delle celle tracciate dal file JSON
         async function loadStormData() {
             try {
                 const response = await fetch('cells.json?t=' + new Date().getTime());
