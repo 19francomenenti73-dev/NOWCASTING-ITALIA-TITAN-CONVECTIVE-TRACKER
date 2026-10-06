@@ -2,7 +2,7 @@ name: Aggiornamento Tracker e Celle Radar
 
 on:
   schedule:
-    - cron: '*/30 * * * *' # Esegue ogni 30 minuti
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -21,9 +21,10 @@ jobs:
 
       - name: Installa dipendenze
         run: |
-          pip install Pillow
+          python -m pip install --upgrade pip
+          pip install Pillow numpy scipy requests
 
-      - name: Esegui generatore celle
+      - name: Esegui generatore celle TITAN
         run: python generate_grid.py
 
       - name: Commit e Push dei cambiamenti
@@ -31,6 +32,6 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add cells.json immagini/
-          git commit -m "Aggiornamento automatico celle radar e grafici 3D [skip ci]" || exit 0
+          git commit -m "Aggiornamento automatico celle radar TITAN e grafici 3D [skip ci]" || exit 0
           git push
           
