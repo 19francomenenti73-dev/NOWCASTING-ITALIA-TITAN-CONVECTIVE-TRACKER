@@ -27,10 +27,10 @@
         // Inizializzazione mappa centrata sull'area di interesse italiana
         var map = L.map('map').setView([41.9, 12.5], 6);
 
-        // Mappa base scura
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        // Mappa base OpenStreetMap (100% gratuita, aperta e senza API Key)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 18,
-            attribution: '&copy; OpenStreetMap & CartoDB'
+            attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
         // Integrazione layer radar in semitrasparenza tramite API aperte RainViewer
@@ -39,9 +39,8 @@
             .then(data => {
                 if (data.radar && data.radar.past && data.radar.past.length > 0) {
                     let latestPath = data.radar.past[data.radar.past.length - 1].path;
-                    // Layer radar con copertura e palette colori (2 = smoothed, 1_1 = standard colormap)
                     let radarLayer = L.tileLayer(`https://tile.rainviewer.com${latestPath}/256/{z}/{x}/{y}/2/1_1.png`, {
-                        opacity: 0.55,
+                        opacity: 0.6,
                         attribution: 'RainViewer'
                     });
                     radarLayer.addTo(map);
@@ -58,16 +57,12 @@
             .then(response => response.json())
             .then(cells => {
                 cells.forEach(cell => {
-                    // Colore del baricentro in base alla riflettività (dBZ)
                     let color = cell.max_dbz >= 55 ? '#e11d48' : '#f59e0b';
-                    
                     let iconHtml = `<div style="background:${color}; width:16px; height:16px; border-radius:50%; border:2px solid #ffffff; box-shadow:0 0 10px ${color};"></div>`;
                     let centroidIcon = L.divIcon({ html: iconHtml, className: 'custom-centroid', iconSize: [16, 16] });
 
-                    // Marker del centnoide
                     let marker = L.marker([cell.lat, cell.lon], {icon: centroidIcon}).addTo(map);
 
-                    // Contenuto popup con immagine finto 3D volumetrico
                     let popupContent = `
                         <div style="font-size:12px; line-height: 1.4;">
                             <b style="color:#38bdf8;">Cell ID: ${cell.id}</b><br>
@@ -82,17 +77,17 @@
                     `;
                     marker.bindPopup(popupContent);
 
-                    // Vettore Storico (Reale - Tratteggiato blu)
+                    // Vettore Storico (Tratteggiato blu)
                     if (cell.percorso_storico && cell.percorso_storico.length > 0) {
                         L.polyline(cell.percorso_storico, {color: '#38bdf8', weight: 3, dashArray: '6, 6'}).addTo(map);
                     }
 
-                    // Vettore Predittivo a 3 ore (Continuo rosso/arancio)
+                    // Vettore Predittivo a 3 ore (Continuo rosso)
                     if (cell.percorso_previsione && cell.percorso_previsione.length > 0) {
                         L.polyline(cell.percorso_previsione, {color: '#ef4444', weight: 4}).addTo(map);
                     }
 
-                    // Anello CEP (Cerchio di previsione impatto)
+                    // Anello CEP
                     if (cell.anello_cep) {
                         L.circle([cell.anello_cep.lat, cell.anello_cep.lon], {
                             radius: cell.anello_cep.raggio_m,
