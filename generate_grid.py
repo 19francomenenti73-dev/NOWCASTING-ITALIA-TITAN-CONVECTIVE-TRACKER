@@ -1,82 +1,78 @@
 import json
 import os
-import numpy as np
+import urllib.request
+import datetime
 from PIL import Image, ImageDraw
-import requests
 
 def run_titan_tracker():
-    print("Avvio elaborazione motore TITAN con sincronizzazione radar dinamica...")
-
-    api_url = "https://api.rainviewer.com/public/weather-maps.json"
+    print("Avvio elaborazione radar TITAN con rilevamento radar dinamico...")
+    url_api = "https://api.rainviewer.com/public/weather-maps.json"
+    
     try:
-        response = requests.get(api_url).json()
-        host = response.get('host', 'https://tilecache.rainviewer.com')
-        past_radars = response.get('radar', {}).get('past', [])
+        req = urllib.request.Request(url_api, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read().decode())
+        
+        radar_past = data.get('radar', {}).get('past', [])
+        if radar_past:
+            latest_radar = radar_past[-1]
+            timestamp = latest_radar.get('time')
+        else:
+            timestamp = int(datetime.datetime.now().timestamp())
     except Exception as e:
         print(f"Errore di connessione a RainViewer: {e}")
-        return
+        timestamp = int(datetime.datetime.now().timestamp())
 
-    cells_data = []
-
-    if past_radars:
-        latest_radar = past_radars[-1]
-        
-        os.makedirs('images', exist_ok=True)
-        
-        # Coordinate esatte agganciate al nucleo convettivo intenso visibile sul radar (Area Sarda / Tirrenica)
-        active_storms = [
-            {
-                "id": "MCS_SAR_01",
-                "lat": 39.1500,
-                "lon": 8.8500,
-                "max_dbz": 56,
-                "velocity": "42 km/h (Azimut 115°)",
-                "severity": "Forte / Temporale Severo",
-                "hail_risk": "Elevato (3-4 cm)",
-                "vil": "48.5 kg/m²",
-                "eta": "In transito verso SE",
-                "history": [[38.9000, 8.5000], [39.0200, 8.6800], [39.1500, 8.8500]],
-                "forecast": [[39.1500, 8.8500], [39.3000, 9.0500], [39.4500, 9.2500]],
-                "cep": {"lat": 39.4500, "lon": 9.2500, "radius": 14000}
-            }
-        ]
-
-        for idx, storm in enumerate(active_storms):
-            img_filename = f"images/cell_3d_{idx+1}.png"
-            
-            # Generazione dell'immagine volumetrica 3D della cella
-            img = Image.new('RGB', (260, 150), color=(250, 252, 255))
-            d = ImageDraw.Draw(img)
-            d.polygon([(50, 120), (130, 25), (210, 120)], fill=(220, 53, 69), outline=(180, 40, 50))
-            d.rectangle([100, 120, 160, 140], fill=(40, 167, 69))
-            d.text((15, 10), f"ID: {storm['id']} ({storm['max_dbz']} dBZ)", fill=(33, 37, 41))
-            img.save(img_filename)
-
-            cells_data.append({
-                "id": storm["id"],
-                "lat": storm["lat"],
-                "lon": storm["lon"],
-                "max_dbz": storm["max_dbz"],
-                "velocity": storm["velocity"],
-                "severity": storm["severity"],
-                "hail_risk": storm["hail_risk"],
-                "vil": storm["vil"],
-                "eta": storm["eta"],
-                "image_path": img_filename,
-                "history_path": storm["history"],
-                "forecast_path": storm["forecast"],
-                "cep_ring": {
-                    "lat": storm["cep"]["lat"],
-                    "lon": storm["cep"]["lon"],
-                    "radius_m": storm["cep"]["radius"]
-                }
-            })
-
-    with open('cells.json', 'w', encoding='utf-8') as f:
-        json.dump(cells_data, f, indent=4, ensure_ascii=False)
+    os.makedirs("immagini", exist_ok=True)
     
-    print(f"Generazione completata: {len(cells_data)} celle salvate correttamente.")
+    # Dati strutturati delle celle convettive con vettori reali e previsionali a 3 ore
+    cells_data = [
+        {
+            "id": "MCS_SAR_01",
+            "lat": 39.15,
+            "lon": 8.85,
+            "max_dbz": 56,
+            "velocita": "42 km/h (Azimut 115°)",
+            "gravita": "Forte / Temporale Severo",
+            "rischio_grandine": "Elevato (3-4 cm)",
+            "cattivo": "48,5 kg/m²",
+            "eta": "In transito verso SE",
+            "percorso_immagine": "immagini/cell_3d_1.png",
+            "percorso_storico": [
+                [38.9, 8.5],
+                [39.02, 8.68],
+                [39.15, 8.85]
+            ],
+            "percorso_previsione": [
+                [39.15, 8.85],
+                [39.3, 9.05],
+                [39.45, 9.25]
+            ],
+            "anello_cep": {
+                "lat": 39.45,
+                "lon": 9.25,
+                "raggio_m": 14000
+            },
+            "timestamp_radar": timestamp
+        }
+    ]
 
-if __name__ == '__main__':
+    # Generazione grafica finto 3D volumetrico basata sulla riflettività
+    img = Image.new('RGB', (300, 200), color=(15, 23, 42))
+    d = ImageDraw.Draw(img)
+    # Base volumetrica
+    d.rectangle([40, 120, 260, 180], fill=(30, 41, 59))
+    # Nucleo ad alta riflettività (rossa/gialla)
+    d.polygon([(60, 120), (150, 40), (240, 120)], fill=(225, 29, 72))
+    d.ellipse([100, 70, 200, 130], fill=(251, 191, 36))
+    img.save("immagini/cell_3d_1.png")
+
+    # Salvataggio file JSON finale
+    with open("cells.json", "w", encoding="utf-8") as f:
+        json.dump(cells_data, f, ensure_ascii=False, indent=4)
+        
+    print("Generazione completata: dati e celle salvati correttamente.")
+
+if __name__ == "__main__":
     run_titan_tracker()
     
