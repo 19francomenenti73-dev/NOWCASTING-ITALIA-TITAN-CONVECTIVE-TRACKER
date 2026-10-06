@@ -20,8 +20,8 @@ def genera_isometric_cella_immagine(max_dbz, percorso_di_output):
     # Calcolo della superficie 3D della cella
     Z = np.exp(-((X - 5)**2 + (Y - 5)**2) / 10.0) * (max_dbz / 1.5)
 
-    # Nota: rimosso 'rasterized=True' per evitare l'errore di incompatibilità
-    ax.plot_surface(X, Y, Z, cmap='gist_nipy_spectral', rstride=1, cstride=1, linewidth=0, antialiased=False)
+    # Nome della palette corretto in 'nipy_spectral'
+    ax.plot_surface(X, Y, Z, cmap='nipy_spectral', rstride=1, cstride=1, linewidth=0, antialiased=False)
     
     ax.axis('off')
     ax.view_init(elev=35, azim=45)
