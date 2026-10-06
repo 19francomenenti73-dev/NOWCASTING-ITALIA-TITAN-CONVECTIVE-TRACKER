@@ -90,42 +90,30 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Caricamento dinamico dei layer meteorologici (IR e Radar) tramite API RainViewer
-        async function loadWeatherLayers() {
+        // Caricamento del livello Radar in tempo reale
+        async function loadRadarLayer() {
             try {
                 const response = await fetch('https://api.rainviewer.com/public/weather-maps.json');
                 const data = await response.json();
                 
-                // Host dinamico fornito dall'API (es. tilecache.rainviewer.com)
                 const host = data.host || 'https://tilecache.rainviewer.com';
 
-                // 1. Livello Satellitare Infrarosso (IR) in semi-trasparenza
-                if (data && data.satellite && data.satellite.infrared && data.satellite.infrared.past && data.satellite.infrared.past.length > 0) {
-                    const latestIR = data.satellite.infrared.past[data.satellite.infrared.past.length - 1];
-                    const irLayer = L.tileLayer(host + latestIR.path + '/256/{z}/{x}/{y}/0/0_0.png', {
-                        tileSize: 256,
-                        opacity: 0.40, // Trasparenza ottimizzata per lo sfondo nuvoloso
-                        attribution: '&copy; RainViewer IR'
-                    });
-                    irLayer.addTo(map);
-                }
-
-                // 2. Livello Radar Precipitazioni in tempo reale
                 if (data && data.radar && data.radar.past && data.radar.past.length > 0) {
                     const latestRadar = data.radar.past[data.radar.past.length - 1];
-                    const radarLayer = L.tileLayer(host + latestRadar.path + '/256/{z}/{x}/{y}/2/1_1.png', {
+                    const radarUrl = host + latestRadar.path + '/256/{z}/{x}/{y}/2/1_1.png';
+                    
+                    L.tileLayer(radarUrl, {
                         tileSize: 256,
-                        opacity: 0.70, // Opacità ottimizzata per evidenziare i nuclei
+                        opacity: 0.75,
                         attribution: '&copy; RainViewer Radar'
-                    });
-                    radarLayer.addTo(map);
+                    }).addTo(map);
                 }
             } catch (e) {
-                console.error("Impossibile caricare i layer meteo:", e);
+                console.error("Errore nel caricamento del layer radar:", e);
             }
         }
 
-        loadWeatherLayers();
+        loadRadarLayer();
 
         // Caricamento delle celle tracciate dal file JSON
         async function loadStormData() {
@@ -184,7 +172,6 @@
         }
 
         loadStormData();
-        // Sincronizzazione automatica ogni 10 minuti
         setInterval(loadStormData, 600000);
     </script>
 </body>
