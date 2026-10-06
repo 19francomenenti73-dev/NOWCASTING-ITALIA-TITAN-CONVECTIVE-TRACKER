@@ -81,7 +81,7 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Mappa centrata su Italia, Mediterraneo e Alpi (Tema chiaro standard OpenStreetMap)
+        // Mappa centrata su Italia, Mediterraneo e Alpi
         const map = L.map('map').setView([45.0, 11.5], 6);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -98,17 +98,17 @@
                     // Soglia di intercettazione rigorosa >= 32 dBZ
                     if (cell.max_dbz >= 32) {
                         
-                        // 1. Vettore Reale Storico (Blu - aggiornato ogni 10 min)
+                        // 1. Vettore Reale Storico (Blu)
                         if (cell.history_path && cell.history_path.length > 0) {
                             L.polyline(cell.history_path, { color: '#007bff', weight: 4, opacity: 0.8 }).addTo(map);
                         }
 
-                        // 2. Vettore Previsionale (Rosso Tratteggiato - 3 ore)
+                        // 2. Vettore Previsionale (Rosso Tratteggiato)
                         if (cell.forecast_path && cell.forecast_path.length > 0) {
                             L.polyline(cell.forecast_path, { color: '#dc3545', weight: 3, dashArray: '5, 10', opacity: 0.9 }).addTo(map);
                         }
 
-                        // 3. Anello CEP (Cerchio rosso di allerta previsionale su centri abitati)
+                        // 3. Anello CEP (Cerchio rosso di allerta)
                         if (cell.cep_ring) {
                             L.circle([cell.cep_ring.lat, cell.cep_ring.lon], {
                                 color: '#dc3545', fillColor: '#dc3545', fillOpacity: 0.15,
@@ -124,7 +124,7 @@
                         });
                         const marker = L.marker([cell.lat, cell.lon], { icon: pulsingIcon }).addTo(map);
 
-                        // 5. Finestra Modale al Click (Immagine PNG statica 3D + Parametri)
+                        // 5. Finestra Modale al Click
                         const popupContent = `
                             <div class="radar-modal-content">
                                 <img src="${cell.image_path}" alt="Estrusione Radar 3D">
