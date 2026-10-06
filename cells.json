@@ -1,46 +1,91 @@
 [
     {
-        "id": "MCS_ITALIA_01",
-        "lat": 41.9028,
-        "lon": 12.4964,
+        "id": "MCS_TYRRHENIAN_01",
+        "lat": 39.5,
+        "lon": 9.2,
         "max_dbz": 54,
-        "velocity": "42 km/h (Azimut 115°)",
-        "severity": "Moderato / Forti rovesci",
-        "hail_risk": "Elevato (Probabile 2-3 cm)",
-        "vil": "45.2 kg/m²",
-        "eta": "In spostamento verso SE",
-        "image_path": "images/cell_3d_active.png",
+        "velocity": "45 km/h (Azimut 120°)",
+        "severity": "Forte / Temporale Severo",
+        "hail_risk": "Elevato (2-4 cm)",
+        "vil": "52.4 kg/m²",
+        "eta": "In transito verso SE",
+        "image_path": "images/cell_3d_1.png",
         "history_path": [
             [
-                41.8,
-                12.35
+                39.2,
+                8.9
             ],
             [
-                41.85,
-                12.42
+                39.35,
+                9.05
             ],
             [
-                41.9028,
-                12.4964
+                39.5,
+                9.2
             ]
         ],
         "forecast_path": [
             [
-                41.9028,
-                12.4964
+                39.5,
+                9.2
             ],
             [
-                41.95,
-                12.58
+                39.68,
+                9.4
             ],
             [
-                42.01,
-                12.67
+                39.85,
+                9.6
             ]
         ],
         "cep_ring": {
-            "lat": 42.01,
-            "lon": 12.67,
+            "lat": 39.85,
+            "lon": 9.6,
+            "radius_m": 15000
+        }
+    },
+    {
+        "id": "MCS_SARDINIA_02",
+        "lat": 38.8,
+        "lon": 8.4,
+        "max_dbz": 48,
+        "velocity": "38 km/h (Azimut 110°)",
+        "severity": "Moderato",
+        "hail_risk": "Medio (1-2 cm)",
+        "vil": "38.1 kg/m²",
+        "eta": "In spostamento verso ESE",
+        "image_path": "images/cell_3d_2.png",
+        "history_path": [
+            [
+                38.6,
+                8.1
+            ],
+            [
+                38.7,
+                8.25
+            ],
+            [
+                38.8,
+                8.4
+            ]
+        ],
+        "forecast_path": [
+            [
+                38.8,
+                8.4
+            ],
+            [
+                38.9,
+                8.58
+            ],
+            [
+                39.0,
+                8.75
+            ]
+        ],
+        "cep_ring": {
+            "lat": 39.0,
+            "lon": 8.75,
             "radius_m": 12000
         }
     }
