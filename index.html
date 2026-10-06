@@ -67,6 +67,7 @@
         }
         .radar-data span {
             font-weight: bold;
+            color: #007bff;
         }
     </style>
 </head>
@@ -78,7 +79,7 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Inizializzazione della mappa centrata sull'Italia
+        // 1. Inizializzazione della mappa centrata sull'Italia
         const map = L.map('map', {
             center: [42.0, 12.5],
             zoom: 6,
@@ -87,22 +88,22 @@
             maxBounds: [[34.0, 5.0], [48.0, 20.0]]
         });
 
-        // 1. Mappa di base OpenStreetMap
+        // 2. Mappa di base OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // 2. Layer Satellitare Ottimizzato per l'Europa (EUMETSAT RSS WMS)
+        // 3. Layer Satellitare Infrarosso 24/7 EUMETSAT RSS WMS (funziona perfettamente anche di giorno)
         const eumetsatSatLayer = L.tileLayer.wms('https://view.eumetsat.int/geoserver/wms', {
-            layers: 'msg_rss:rgb_fog', // Area di scansione rapida focalizzata sull'Europa/Italia
+            layers: 'msg_rss:ir108', // Canale Infrarosso termico 10.8 µm (attivo 24/7)
             format: 'image/png',
             transparent: true,
-            opacity: 0.45,
+            opacity: 0.5,            // Trasparenza dello strato satellitare
             version: '1.3.0',
             attribution: '&copy; EUMETSAT EUMETView RSS'
         }).addTo(map);
 
-        // 3. Caricamento del livello Radar in tempo reale da RainViewer
+        // 4. Caricamento del livello Radar in tempo reale da RainViewer
         async function loadRadarLayer() {
             try {
                 const response = await fetch('https://api.rainviewer.com/public/weather-maps.json');
@@ -124,10 +125,10 @@
 
         loadRadarLayer();
 
-        // 4. Caricamento delle celle multiple dal file JSON
+        // 5. Caricamento delle celle multiple dal file JSON
         async function loadStormData() {
             try {
-                const response = label = await fetch('cells.json?t=' + new Date().getTime());
+                const response = await fetch('cells.json?t=' + new Date().getTime());
                 const cells = await response.json();
 
                 cells.forEach(cell => {
