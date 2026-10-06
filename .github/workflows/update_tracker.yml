@@ -1,4 +1,4 @@
-name: TITAN Lagrangian Engine Update (10m)
+name: Aggiornamento del motore lagrangiano TITAN (10 minuti)
 
 on:
   schedule:
@@ -27,9 +27,8 @@ jobs:
         run: python generate_grid.py
 
       - name: Commit e Push automatico sicuro
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: "Aggiornamento automatico griglia 3D e celle [skip ci]"
-          file_pattern: "images/cell_sample_01.png cells.json"
-          token: ${{ secrets.GITHUB_TOKEN }}
+          commit_message: 'Aggiornamento automatico grigliato 3D e celle (cella 01)'
+          file_pattern: 'immagini/cell_sample_01.png cells.json'
           
