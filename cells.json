@@ -1,92 +1,47 @@
 [
     {
-        "id": "MCS_TYRRHENIAN_01",
-        "lat": 39.5,
-        "lon": 9.2,
-        "max_dbz": 54,
-        "velocity": "45 km/h (Azimut 120°)",
+        "id": "MCS_SAR_01",
+        "lat": 39.15,
+        "lon": 8.85,
+        "max_dbz": 56,
+        "velocity": "42 km/h (Azimut 115°)",
         "severity": "Forte / Temporale Severo",
-        "hail_risk": "Elevato (2-4 cm)",
-        "vil": "52.4 kg/m²",
+        "hail_risk": "Elevato (3-4 cm)",
+        "vil": "48.5 kg/m²",
         "eta": "In transito verso SE",
         "image_path": "images/cell_3d_1.png",
         "history_path": [
             [
-                39.2,
-                8.9
+                38.9,
+                8.5
             ],
             [
-                39.35,
+                39.02,
+                8.68
+            ],
+            [
+                39.15,
+                8.85
+            ]
+        ],
+        "forecast_path": [
+            [
+                39.15,
+                8.85
+            ],
+            [
+                39.3,
                 9.05
             ],
             [
-                39.5,
-                9.2
-            ]
-        ],
-        "forecast_path": [
-            [
-                39.5,
-                9.2
-            ],
-            [
-                39.68,
-                9.4
-            ],
-            [
-                39.85,
-                9.6
+                39.45,
+                9.25
             ]
         ],
         "cep_ring": {
-            "lat": 39.85,
-            "lon": 9.6,
-            "radius_m": 15000
-        }
-    },
-    {
-        "id": "MCS_SARDINIA_02",
-        "lat": 38.8,
-        "lon": 8.4,
-        "max_dbz": 48,
-        "velocity": "38 km/h (Azimut 110°)",
-        "severity": "Moderato",
-        "hail_risk": "Medio (1-2 cm)",
-        "vil": "38.1 kg/m²",
-        "eta": "In spostamento verso ESE",
-        "image_path": "images/cell_3d_2.png",
-        "history_path": [
-            [
-                38.6,
-                8.1
-            ],
-            [
-                38.7,
-                8.25
-            ],
-            [
-                38.8,
-                8.4
-            ]
-        ],
-        "forecast_path": [
-            [
-                38.8,
-                8.4
-            ],
-            [
-                38.9,
-                8.58
-            ],
-            [
-                39.0,
-                8.75
-            ]
-        ],
-        "cep_ring": {
-            "lat": 39.0,
-            "lon": 8.75,
-            "radius_m": 12000
+            "lat": 39.45,
+            "lon": 9.25,
+            "radius_m": 14000
         }
     }
 ]
