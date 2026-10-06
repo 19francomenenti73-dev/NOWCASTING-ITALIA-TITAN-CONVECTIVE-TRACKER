@@ -42,7 +42,7 @@
             opacity: 0.5
         });
 
-        // Layer radar in semitrasparenza tramite API aperte RainViewer
+        // Layer radar RainViewer con host dinamico corretto
         var radarLayer = L.tileLayer('', { opacity: 0.6, attribution: 'RainViewer' });
 
         fetch('https://api.rainviewer.com/public/weather-maps.json')
@@ -50,7 +50,9 @@
             .then(data => {
                 if (data.radar && data.radar.past && data.radar.past.length > 0) {
                     let latestPath = data.radar.past[data.radar.past.length - 1].path;
-                    radarLayer.setUrl(`https://tile.rainviewer.com${latestPath}/256/{z}/{x}/{y}/2/1_1.png`);
+                    let host = data.host || 'https://tile.rainviewer.com';
+                    let tileUrl = host + latestPath + '/256/{z}/{x}/{y}/2/1_1.png';
+                    radarLayer.setUrl(tileUrl);
                     radarLayer.addTo(map);
                     document.getElementById('status-radar').innerText = "Radar attivo e sincronizzato";
                 }
@@ -68,16 +70,26 @@
         };
         L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
 
-        // Caricamento dati celle da cells.json generato dal backend
-        fetch('cells.json')
-            .then(response => response.json())
+        // Gestione robusta del percorso base per GitHub Pages (supporta sottocartelle)
+        let basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/')) + '/';
+        let jsonUrl = window.location.origin + basePath + 'cells.json';
+
+        // Caricamento dati celle da cells.json con gestione corretta dei percorsi
+        fetch(jsonUrl)
+            .then(response => {
+                if (!response.ok) throw new Error("HTTP error " + response.status);
+                return response.json();
+            })
             .then(cells => {
                 cells.forEach(cell => {
                     let color = cell.max_dbz >= 55 ? '#e11d48' : '#f59e0b';
                     let iconHtml = `<div style="background:${color}; width:16px; height:16px; border-radius:50%; border:2px solid #ffffff; box-shadow:0 0 10px ${color};"></div>`;
                     let centroidIcon = L.divIcon({ html: iconHtml, className: 'custom-centroid', iconSize: [16, 16] });
 
+                    // Marker del centroide della cella
                     let marker = L.marker([cell.lat, cell.lon], {icon: centroidIcon}).addTo(map);
+
+                    let imgPath = window.location.origin + basePath + cell.percorso_immagine;
 
                     let popupContent = `
                         <div style="font-size:12px; line-height: 1.4;">
@@ -88,7 +100,7 @@
                             <b>Rischio Grandine:</b> ${cell.rischio_grandine}<br>
                             <b>VCM / VIL:</b> ${cell.cattivo}<br>
                             <i style="color:#cbd5e1;">${cell.eta}</i><br>
-                            <img src="${cell.percorso_immagine}" class="cell-img" alt="3D Volumetrico">
+                            <img src="${imgPath}" class="cell-img" alt="3D Volumetrico" onerror="this.style.display='none'">
                         </div>
                     `;
                     marker.bindPopup(popupContent);
@@ -103,7 +115,7 @@
                         L.polyline(cell.percorso_previsione, {color: '#ef4444', weight: 4}).addTo(map);
                     }
 
-                    // Anello CEP
+                    // Anello CEP (Probabilità di impatto)
                     if (cell.anello_cep) {
                         L.circle([cell.anello_cep.lat, cell.anello_cep.lon], {
                             radius: cell.anello_cep.raggio_m,
@@ -115,7 +127,10 @@
                     }
                 });
             })
-            .catch(err => console.error("Errore caricamento celle:", err));
+            .catch(err => {
+                console.error("Errore caricamento celle.json:", err);
+                document.getElementById('status-radar').innerText = "Errore caricamento celle";
+            });
     </script>
 </body>
 </html>
