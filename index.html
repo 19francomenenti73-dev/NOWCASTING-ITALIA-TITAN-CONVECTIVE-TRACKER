@@ -92,13 +92,15 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // 2. Layer Satellitare Ottimizzato per l'Europa (EUMETSAT RSS WMS)
+        // 2. Layer Satellitare IR ottimizzato (tileSize 512 per ridurre le richieste al server WMS)
         const eumetsatSatLayer = L.tileLayer.wms('https://view.eumetsat.int/geoserver/wms', {
-            layers: 'msg_rss:rgb_fog', // Area di scansione rapida focalizzata sull'Europa/Italia
+            layers: 'msg_rss:rgb_fog',
             format: 'image/png',
             transparent: true,
             opacity: 0.45,
             version: '1.3.0',
+            tileSize: 512,  // <-- Ottimizzazione: blocchi più grandi per dimezzare il tempo di caricamento
+            zoomOffset: -1,
             attribution: '&copy; EUMETSAT EUMETView RSS'
         }).addTo(map);
 
@@ -127,7 +129,7 @@
         // 4. Caricamento delle celle multiple dal file JSON
         async function loadStormData() {
             try {
-                const response = label = await fetch('cells.json?t=' + new Date().getTime());
+                const response = await fetch('cells.json?t=' + new Date().getTime());
                 const cells = await response.json();
 
                 cells.forEach(cell => {
