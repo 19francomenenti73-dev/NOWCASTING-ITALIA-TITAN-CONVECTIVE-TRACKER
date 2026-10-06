@@ -1,46 +1,46 @@
 [
     {
-        "id": "cella_01",
-        "lat": 45.4642,
-        "lon": 9.19,
-        "max_dbz": 68,
-        "vil": "48 kg/m²",
-        "eta": "35 minuti",
-        "velocity": "55 km/h",
-        "severity": "Alto",
-        "hail_risk": "Elevato",
-        "image_path": "immagini/cell_sample_01.png",
+        "id": "MCS_ITALIA_01",
+        "lat": 41.9028,
+        "lon": 12.4964,
+        "max_dbz": 54,
+        "velocity": "42 km/h (Azimut 115°)",
+        "severity": "Moderato / Forti rovesci",
+        "hail_risk": "Elevato (Probabile 2-3 cm)",
+        "vil": "45.2 kg/m²",
+        "eta": "In spostamento verso SE",
+        "image_path": "images/cell_3d_active.png",
         "history_path": [
             [
-                45.2,
-                8.9
+                41.8,
+                12.35
             ],
             [
-                45.33,
-                9.05
+                41.85,
+                12.42
             ],
             [
-                45.4642,
-                9.19
+                41.9028,
+                12.4964
             ]
         ],
         "forecast_path": [
             [
-                45.4642,
-                9.19
+                41.9028,
+                12.4964
             ],
             [
-                45.6,
-                9.35
+                41.95,
+                12.58
             ],
             [
-                45.75,
-                9.5
+                42.01,
+                12.67
             ]
         ],
         "cep_ring": {
-            "lat": 45.75,
-            "lon": 9.5,
+            "lat": 42.01,
+            "lon": 12.67,
             "radius_m": 12000
         }
     }
