@@ -93,14 +93,13 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // 3. Layer Satellitare Infrarosso EUMETSAT RSS WMS con CRS esplicito per compatibilità
+        // 3. Layer Satellitare Infrarosso EUMETSAT RSS in semi-trasparenza (attivo 24/7)
         const eumetsatSatLayer = L.tileLayer.wms('https://view.eumetsat.int/geoserver/wms', {
             layers: 'msg_rss:ir108',
             format: 'image/png',
             transparent: true,
             opacity: 0.5,
             version: '1.1.1',
-            crs: L.CRS.EPSG3857,
             attribution: '&copy; EUMETSAT EUMETView RSS'
         }).addTo(map);
 
@@ -126,35 +125,34 @@
 
         loadRadarLayer();
 
-        // 5. Caricamento delle celle dal file JSON (senza filtri restrittivi per mostrare tutto)
+        // 5. Caricamento delle celle leggendo correttamente le chiavi in italiano dal file cells.json
         async function loadStormData() {
             try {
                 const response = await fetch('cells.json?t=' + new Date().getTime());
                 const cells = await response.json();
 
                 cells.forEach(cell => {
-                    // Verifichiamo che la cella abbia coordinate valide
                     if (cell.lat && cell.lon) {
                         
                         // Vettore Storico (Blu)
-                        if (cell.history_path && cell.history_path.length > 0) {
-                            L.polyline(cell.history_path, { color: '#007bff', weight: 4, opacity: 0.8 }).addTo(map);
+                        if (cell.percorso_storico && cell.percorso_storico.length > 0) {
+                            L.polyline(cell.percorso_storico, { color: '#007bff', weight: 4, opacity: 0.8 }).addTo(map);
                         }
                         
                         // Vettore Previsionale (Rosso Tratteggiato)
-                        if (cell.forecast_path && cell.forecast_path.length > 0) {
-                            L.polyline(cell.forecast_path, { color: '#dc3545', weight: 3, dashArray: '5, 10', opacity: 0.9 }).addTo(map);
+                        if (cell.percorso_previsione && cell.percorso_previsione.length > 0) {
+                            L.polyline(cell.percorso_previsione, { color: '#dc3545', weight: 3, dashArray: '5, 10', opacity: 0.9 }).addTo(map);
                         }
                         
                         // Anello CEP
-                        if (cell.cep_ring && cell.cep_ring.lat && cell.cep_ring.lon) {
-                            L.circle([cell.cep_ring.lat, cell.cep_ring.lon], {
+                        if (cell.anello_cep && cell.anello_cep.lat && cell.anello_cep.lon) {
+                            L.circle([cell.anello_cep.lat, cell.anello_cep.lon], {
                                 color: '#dc3545', fillColor: '#dc3545', fillOpacity: 0.15,
-                                radius: cell.cep_ring.radius_m || 5000, weight: 2
+                                radius: cell.anello_cep.raggio_m || 5000, weight: 2
                             }).addTo(map);
                         }
 
-                        // Centroide Pulsante Verde per ogni cella
+                        // Centroide Pulsante Verde
                         const pulsingIcon = L.divIcon({
                             className: 'pulsing-centroid',
                             iconSize: [24, 24],
@@ -162,16 +160,16 @@
                         });
                         const marker = L.marker([cell.lat, cell.lon], { icon: pulsingIcon }).addTo(map);
 
-                        // Gestione sicura dei parametri (evita valori zero o undefined nel popup)
+                        // Estrazione sicura dei dati basata sulle chiavi in italiano del JSON
                         const maxDbz = cell.max_dbz !== undefined ? cell.max_dbz : '-';
-                        const velocity = cell.velocity !== undefined ? cell.velocity : '-';
-                        const severity = cell.severity !== undefined ? cell.severity : '-';
-                        const hailRisk = cell.hail_risk !== undefined ? cell.hail_risk : '-';
-                        const vil = cell.vil !== undefined ? cell.vil : '-';
+                        const velocity = cell.velocità !== undefined ? cell.velocità : '-';
+                        const gravity = cell.gravità !== undefined ? cell.gravità : '-';
+                        const hailRisk = cell["rischio grandine"] !== undefined ? cell["rischio grandine"] : '-';
+                        const vil = cell.cattivo !== undefined ? cell.cattivo : '-';
                         const eta = cell.eta !== undefined ? cell.eta : '-';
-                        const imagePath = cell.image_path ? cell.image_path : '';
+                        const imagePath = cell.percorso_immagine ? cell.percorso_immagine : '';
 
-                        // Popup con Immagine Volumetrica 3D e dati della cella
+                        // Popup con Immagine Volumetrica 3D e dati formattati
                         const popupContent = `
                             <div class="radar-modal-content">
                                 ${imagePath ? `<img src="${imagePath}" alt="Estrusione Radar 3D">` : ''}
@@ -179,9 +177,9 @@
                                     <div>ID Cella: <span>${cell.id || 'N/D'}</span></div>
                                     <div>Riflettività Max: <span>${maxDbz} dBZ</span></div>
                                     <div>Velocità: <span>${velocity}</span></div>
-                                    <div>Severità: <span>${severity}</span></div>
-                                    <div>Rischio Grandine: <span>${hail_risk}</span></div>
-                                    <div>VIL: <span>${vil}</span> | ETA: <span>${eta}</span></div>
+                                    <div>Gravità: <span>${gravity}</span></div>
+                                    <div>Grandine: <span>${hailRisk}</span></div>
+                                    <div>VIL / Altro: <span>${vil}</span> | ETA: <span>${eta}</span></div>
                                 </div>
                             </div>
                         `;
